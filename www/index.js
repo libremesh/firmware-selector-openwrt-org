@@ -627,13 +627,16 @@ function updateImages(version, mobj) {
       h3.classList.remove("tr-downloads");
       h3.classList.add("tr-custom-downloads");
       show('#downloads1')
+      show('#downloads2')
     } else {
       h3.classList.remove("tr-custom-downloads");
       h3.classList.add("tr-downloads");
       if (config.versions_info[version]?.build_only) {
         hide("#downloads1");
+        hide("#downloads2");
       } else {
         show('#downloads1')
+        show('#downloads2')
       }
     }
 

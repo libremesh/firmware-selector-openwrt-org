@@ -25,7 +25,7 @@ html {
     display: none !important;
   }
 
-  #downloads2 {
+  #downloads2:not(.hide) {
     display: block !important;
   }
 }
