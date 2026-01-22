@@ -7,8 +7,10 @@ def test_spa(simplehttpserver):
         page.goto("http://localhost:8000/www/")
         assert "OpenWrt Firmware Selector" in page.title()
 
-        assert page.locator("#versions").select_option("19.07.10")[0] == "19.07.10"
+        assert page.locator("#versions").select_option("master-ow24.10.5")[0] == "master-ow24.10.5"
 
+        # wait 1s to ensure that the remote .overview.json have been fetched
+        page.wait_for_timeout(1000)
         page.fill("#models", "a7 v5")
         models = page.inner_text("#models-autocomplete-list")
         assert "TP-Link Archer A7 v5" in models

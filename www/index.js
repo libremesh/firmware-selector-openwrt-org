@@ -3,6 +3,9 @@
 let current_device = {};
 let current_language = undefined;
 let current_language_json = undefined;
+let current_ref = "";
+let current_openwrt = "";
+let current_flavor = [];
 let url_params = undefined;
 const ofs_version = "%GIT_VERSION%";
 
@@ -81,6 +84,7 @@ function buildAsuRequest(request_hash) {
       case "info":
         bs.classList.remove("asu-error");
         bs.classList.add("asu-info");
+        show("#downloads1");
         show(bs);
         break;
       default:
@@ -110,16 +114,84 @@ function buildAsuRequest(request_hash) {
 
   var request_url = `${config.asu_url}/api/v1/build`;
 
+  let openwrt_branch = "openwrt-main";
+  let packages_ref = "packages.adb";
+  let repo_keys = [
+    "-----BEGIN PUBLIC KEY-----\n\
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEdFJZ2qVti49Ol8LJZYuxgOCLowBS\n\
+8bI86a7zqhSbs5yon3JON7Yee7CQOgqwPOX5eMALGOu8iFGAqIRx5YjfYA==\n\
+-----END PUBLIC KEY-----",
+  ];
+
+  if (current_openwrt != "SNAPSHOT") {
+    openwrt_branch = "openwrt-" + current_openwrt.substring(0, 5);
+    repo_keys = ["RWSnGzyChavSiyQ+vLk3x7F0NqcLa4kKyXCdriThMhO78ldHgxGljM/8"];
+    if (current_openwrt.substring(0, 2) < 25) {
+      packages_ref = "";
+    }
+  }
+
+  let repos = {
+    libremesh:
+      "http://feed.libremesh.org/" +
+      current_ref +
+      "/" +
+      openwrt_branch +
+      "/x86_64/" +
+      packages_ref,
+    libremesh_arch_packages:
+      "http://feed.libremesh.org/" +
+      current_ref +
+      "/" +
+      openwrt_branch +
+      "/" +
+      current_device.arch +
+      "/" +
+      packages_ref,
+    profile:
+      "http://feed.libremesh.org/profiles/" +
+      openwrt_branch +
+      "/x86_64/" +
+      packages_ref,
+  };
+  if (current_ref == 2024.1) {
+    repos = {
+      libremesh:
+        "https://feed.libremesh.org/" + current_ref + "/" + packages_ref,
+      libremesh_arch_packages:
+        "https://feed.libremesh.org/arch_packages/" +
+        current_ref +
+        "/" +
+        current_device.arch +
+        "/" +
+        packages_ref,
+      profile:
+        "https://feed.libremesh.org/profiles/" +
+        openwrt_branch +
+        "/x86_64/" +
+        packages_ref,
+    };
+  }
+
   var body = JSON.stringify({
     profile: current_device.id,
     target: current_device.target,
     packages: split($("#asu-packages").value),
     defaults: $("#uci-defaults-content").value,
     version_code: $("#image-code").innerText,
-    version: $("#versions").value,
+    version: current_openwrt,
     diff_packages: true,
     client: "ofs/" + ofs_version,
+    configs: [
+      "CONFIG_VERSION_DIST=LibreMesh",
+      "CONFIG_VERSION_NUMBER=" + $("#versions").value,
+    ],
+    repository_keys: repo_keys,
+    repositories: repos,
   });
+
+  // console.log(body)
+
   var method = "POST";
 
   if (request_hash) {
@@ -153,6 +225,7 @@ function buildAsuRequest(request_hash) {
             mobj["id"] = current_device.id;
             mobj["asu_image_url"] = config.asu_url + "/store/" + mobj.bin_dir;
             updateImages(mobj.version_number, mobj);
+            show("#downloads1");
           });
           break;
         case 202:
@@ -204,7 +277,9 @@ function setupSelectList(select, items, onselection) {
 
   for (const item of items) {
     const option = document.createElement("OPTION");
-    option.innerText = item;
+    option.innerText =
+      (config.versions_info[item]?.build_only && item + " (request build)") ||
+      item;
     option.value = item;
     if (item == "latest") {
       // translate the artificial release "latest"
@@ -574,16 +649,29 @@ function updateImages(version, mobj) {
       mobj.image_folder = mobj.asu_image_url;
     } else {
       const base_url = config.image_urls[version];
-      mobj.image_folder = `${base_url}/targets/${mobj.target}`;
+      const flavor = config.versions_info[version]?.flavor || "";
+      const buildonly = config.versions_info[version]?.build_only;
+      mobj.image_folder = `${base_url}/targets/${mobj.target}${
+        (!buildonly && flavor && "/" + flavor) || ""
+      }`;
     }
 
     const h3 = $("#downloads1 h3");
     if ("build_cmd" in mobj) {
       h3.classList.remove("tr-downloads");
       h3.classList.add("tr-custom-downloads");
+      show("#downloads1");
+      show("#downloads2");
     } else {
       h3.classList.remove("tr-custom-downloads");
       h3.classList.add("tr-downloads");
+      if (config.versions_info[version]?.build_only) {
+        hide("#downloads1");
+        hide("#downloads2");
+      } else {
+        show("#downloads1");
+        show("#downloads2");
+      }
     }
 
     // update title translation
@@ -592,7 +680,7 @@ function updateImages(version, mobj) {
     // fill out build info
     setValue("#image-model", getModelTitles(mobj.titles).join(" / "));
     setValue("#image-target", mobj.target);
-    setValue("#image-version", mobj.version_number);
+    setValue("#image-version", version);
     setValue("#image-code", mobj.version_code);
     setValue("#image-date", formatDate(mobj.build_at));
     setValue("#image-folder", mobj.image_folder);
@@ -610,7 +698,7 @@ function updateImages(version, mobj) {
       "#image-link",
       document.location.href.split("?")[0] +
         "?version=" +
-        encodeURIComponent(mobj.version_number) +
+        encodeURIComponent(version) +
         "&target=" +
         encodeURIComponent(mobj.target) +
         "&id=" +
@@ -654,16 +742,62 @@ function updateImages(version, mobj) {
       };
     }
 
-    if ("manifest" in mobj === false) {
-      // Not ASU. Hide fields.
-      $("#asu").open = false;
-      hide("#asu-log");
-      hide("#asu-buildstatus");
-      // Pre-select ASU packages.
-      $("#asu-packages").value = mobj.default_packages
-        .concat(mobj.device_packages)
-        .concat(config.asu_extra_packages || [])
-        .join(" ");
+    if (config.versions_info[version]?.allow_build == false) {
+      hide("#asu");
+    } else {
+      show("#asu");
+
+      if ("manifest" in mobj === false) {
+        // Not ASU. Hide fields.
+        $("#asu").open = false;
+        hide("#asu-log");
+        hide("#asu-buildstatus");
+
+        let libremesh_version_packages = config.version_packages || [];
+        let device_packages = [];
+        // console.log(mobj.default_packages.concat(mobj.device_packages))
+        let owrt_packages = mobj.default_packages.concat(mobj.device_packages);
+
+        if (
+          owrt_packages.includes("kmod-ath9k") ||
+          owrt_packages.includes("kmod-ath10k-ct") ||
+          owrt_packages.includes("-kmod-ath10k-ct") ||
+          owrt_packages.includes("kmod-ath10k-ct-smallbuffers") ||
+          owrt_packages.includes("-kmod-ath10k-ct-smallbuffers")
+        ) {
+          device_packages = packages_changes(owrt_packages);
+        }
+
+        // let device_packages_add = current_target?.profiles?.filter(i => i.name === mobj.id)?.[0]?.packages || []
+        // let device_packages = (current_target.default_packages || []).concat(device_packages_add)
+        let libremesh_packages = current_flavor;
+        let lime_packages = libremesh_version_packages
+          .concat(device_packages)
+          .concat(libremesh_packages);
+
+        // console.log(lime_packages)
+        // console.log(current_target)
+
+        // Pre-select ASU packages.
+        $("#asu-packages").value = mobj.default_packages
+          .concat(mobj.device_packages)
+          .concat(config.asu_extra_packages || [])
+          .concat(lime_packages)
+          .join(" ");
+
+        if ($("#libremesh-version-packages")) {
+          $("#libremesh-version-packages").innerHTML =
+            libremesh_version_packages.join(" ") || "";
+        }
+        if ($("#libremesh-device-packages")) {
+          $("#libremesh-device-packages").innerHTML =
+            device_packages.join(" ") || "<i>-</i>";
+        }
+        if ($("#libremesh-default-packages")) {
+          $("#libremesh-default-packages").innerHTML =
+            libremesh_packages.join(" ") || "";
+        }
+      }
     }
 
     translate();
@@ -675,7 +809,7 @@ function updateImages(version, mobj) {
         null,
         document.location.href.split("?")[0] +
           "?version=" +
-          encodeURIComponent(mobj.version_number) +
+          encodeURIComponent(version) +
           "&target=" +
           encodeURIComponent(mobj.target) +
           "&id=" +
@@ -710,10 +844,20 @@ function setModel(overview, target, id) {
 }
 
 function changeModel(version, overview, title) {
+  hide("#downloads1");
   const entry = overview.profiles[title];
-  const base_url = config.image_urls[version];
+  const base_url = config.profile_urls[version];
+
+  current_openwrt = config.versions_info[version].openwrt_version;
+  current_ref = config.versions_info[version].libremesh_ref;
+  const flavorName = config.versions_info[version]?.flavor || "";
+  const buildOnly = config.versions_info[version]?.build_only;
+  const flavor = (!buildOnly && flavorName !== "" && "/" + flavorName) || "";
+
+  current_flavor = config.flavors?.[flavorName];
+
   if (entry) {
-    fetch(`${base_url}/targets/${entry.target}/profiles.json`, {
+    fetch(`${base_url}/targets/${entry.target}${flavor}/profiles.json`, {
       cache: "no-cache",
     })
       .then((obj) => {
@@ -725,6 +869,10 @@ function changeModel(version, overview, title) {
       })
       .then((mobj) => {
         mobj["id"] = entry.id;
+        if (!mobj["profiles"][entry.id]?.["images"]) {
+          // libremesh device not built
+          return;
+        }
         mobj["images"] = mobj["profiles"][entry.id]["images"];
         mobj["titles"] = mobj["profiles"][entry.id]["titles"];
         mobj["device_packages"] = mobj["profiles"][entry.id]["device_packages"];
@@ -733,6 +881,7 @@ function changeModel(version, overview, title) {
           version: version,
           id: entry.id,
           target: entry.target,
+          arch: mobj["arch_packages"],
         };
       })
       .catch((err) => showAlert(err.message));
@@ -859,21 +1008,47 @@ async function init() {
   }
   config.overview_urls = {};
   config.image_urls = {};
+  config.profile_urls = {};
 
-  const overview_url = config.image_url;
   const image_url = upstream_config.image_url_override || config.image_url;
   for (const version of config.versions) {
-    if (version == "SNAPSHOT") {
+    if (version == "master-owSNAPSHOT") {
       // openwrt.org oddity
-      config.overview_urls[version] = `${overview_url}/snapshots/`;
-      config.image_urls[version] = `${image_url}/snapshots/`;
+      config.overview_urls[version] = `${config.openwrt_image_url}/snapshots/`;
+      config.image_urls[version] = config.overview_urls[version];
+      config.profile_urls[version] = config.overview_urls[version];
     } else {
-      config.overview_urls[version] = `${overview_url}/releases/${version}`;
-      config.image_urls[version] = `${image_url}/releases/${version}`;
+      const openwrt_version =
+        config.versions_info[version]?.openwrt_version || "";
+      const openwrt_image_url =
+        upstream_config.image_url_override || config.openwrt_image_url;
+      config.profile_urls[
+        version
+      ] = `${openwrt_image_url}/releases/${openwrt_version}`;
+      config.overview_urls[
+        version
+      ] = `${config.openwrt_image_url}/releases/${openwrt_version}`;
+
+      if (config.versions_info[version]?.build_only) {
+        config.image_urls[
+          version
+        ] = `${openwrt_image_url}/releases/${openwrt_version}`;
+        config.profile_urls[
+          version
+        ] = `${openwrt_image_url}/releases/${openwrt_version}`;
+      } else {
+        const libremesh_version =
+          version.replace("-" + config.versions_info[version].flavor, "") ||
+          version;
+        config.image_urls[
+          version
+        ] = `${image_url}/releases/${libremesh_version}`;
+        config.profile_urls[
+          version
+        ] = `${image_url}/releases/${libremesh_version}`;
+      }
     }
   }
-
-  console.log("versions: " + config.versions);
 
   setupSelectList($("#versions"), config.versions, (version) => {
     // A new version was selected
@@ -955,4 +1130,87 @@ async function init() {
   updateImages();
 
   initTranslation();
+}
+
+let packages_changes_list = [
+  {
+    source: "kmod-ath9k",
+    action: "replace",
+    packages: ["wifi-unstuck-wa"],
+  },
+  {
+    source: "-kmod-ath9k",
+    action: "replace",
+    packages: ["-wifi-unstuck-wa"],
+  },
+  {
+    source: "kmod-ath10k-ct-smallbuffers",
+    action: "replace",
+    packages: [
+      "-kmod-ath10k",
+      "-kmod-ath10k-ct",
+      "-kmod-ath10k-ct-smallbuffers",
+      "kmod-ath10k-smallbuffers",
+    ],
+  },
+  {
+    source: "kmod-ath10k-ct",
+    action: "replace",
+    packages: [
+      "-kmod-ath10k-ct",
+      "-kmod-ath10k-ct-smallbuffers",
+      "kmod-ath10k",
+    ],
+  },
+  {
+    source: "-kmod-ath10k-ct",
+    action: "replace",
+    packages: ["-kmod-ath10k"],
+  },
+  {
+    source: /^ath10k-firmware-qca(.*)-ct(.*)$/,
+    action: "regexp",
+    packages: [
+      "-ath10k-firmware-qcaREPLACE-ctKEEP",
+      "ath10k-firmware-qcaREPLACE",
+    ],
+  },
+  {
+    source: /^-ath10k-firmware-qca(.*)-ct(.*)$/,
+    action: "regexp",
+    packages: ["ath10k-firmware-qcaREPLACE"],
+  },
+];
+
+function packages_changes(packages) {
+  let packages_list = [];
+
+  packages.forEach((package) => {
+    packages_changes_list.forEach((pc) => {
+      if (pc.action == "replace") {
+        if (package == pc.source) {
+          pc.packages.forEach((change) => {
+            if (!packages_list.includes(change)) {
+              packages_list.push(change);
+            }
+          });
+        }
+      }
+      if (pc.action == "regexp") {
+        let matches = package.match(pc.source);
+        if (matches?.length) {
+          pc.packages.forEach((replacement) => {
+            let change = replacement
+              .replace("REPLACE", matches[1])
+              .replace("KEEP", matches[2]);
+            if (!packages_list.includes(change)) {
+              packages_list.push(change);
+            }
+          });
+        }
+      }
+    });
+  });
+
+  return packages_list;
 }

@@ -9,6 +9,31 @@
     <link rel="stylesheet" href="index.css" />
     <script src="config.js"></script>
     <script src="index.js"></script>
+    <style>
+      .info-item {
+        background-color: #fff;
+        border-radius: 0.3em;
+        padding: 0.5em;
+      }
+      .libremesh-info {
+        margin: 1em 0;
+        font-size: 0.9em;
+        background-color: #ccfea7;
+        padding: 1em;
+        border-radius: 0.3em;
+        line-height: normal;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        .info-item {
+          background-color: #18181b;
+          color: #fff;
+        }
+        .libremesh-info {
+          background-color: #004d00;
+        }
+      }
+    </style>
   </head>
   <body onload="init()">
     <!-- header across the whole page -->
@@ -157,10 +182,85 @@
                     </details>
                   </div>
                 </div>
+
+                <!-- libremesh info -->
+                <details class="libremesh-info">
+                  <summary>Libremesh packages info</summary>
+                  <div style="margin-top: 1em">
+                    <a
+                      style="display: block; margin: 1em 0"
+                      href="https://libremesh.org/development.html"
+                      >https://libremesh.org/development.html</a
+                    >
+                    <div style="font-size: 0.85em">
+                      <div class="libremesh-version-packages-wrapper">
+                        <strong>Version packages:</strong
+                        ><span> related to openwrt default_packages</span>
+                        <p
+                          class="info-item"
+                          id="libremesh-version-packages"
+                        ></p>
+                      </div>
+                      <div class="libremesh-device-packages-wrapper">
+                        <strong>Device packages: </strong>
+                        <ul>
+                          <li>
+                            <b>ath10k</b>: replace ath10k-ct with ath10k to work
+                            with 802.11s on most devices
+                            <a
+                              href="https://openwrt.org/docs/guide-user/network/wifi/mesh/80211s"
+                              >Source</a
+                            >
+                          </li>
+                          <li>
+                            <b>ath9k</b>: add the package
+                            <i><b>wifi-unstuck-wa</b></i> to workaround deaf
+                            radios
+                            <a
+                              href="https://github.com/openwrt/openwrt/issues/7016"
+                              >Source</a
+                            >
+                          </li>
+                        </ul>
+                        <p class="info-item" id="libremesh-device-packages"></p>
+                      </div>
+                      <div class="libremesh-default-packages-wrapper">
+                        <strong>Suggested packages:</strong>
+                        <ul>
+                          <li>
+                            <b>default</b>: or use the network profile
+                            <i><b>profile-libremesh-suggested-packages</b></i>
+                            <a
+                              href="https://github.com/libremesh/network-profiles/blob/master/libremesh/suggested-packages/Makefile"
+                              >Source</a
+                            >
+                          </li>
+                          <li>
+                            <b>mini</b>: or use the network profile
+                            <i
+                              ><b
+                                >profile-libremesh-suggested-packages-tiny</b
+                              ></i
+                            >
+                            <a
+                              href="https://github.com/libremesh/network-profiles/blob/master/libremesh/suggested-packages-tiny/Makefile"
+                              >Source</a
+                            >
+                          </li>
+                        </ul>
+                        <p
+                          class="info-item"
+                          id="libremesh-default-packages"
+                        ></p>
+                      </div>
+                    </div>
+                  </div>
+                </details>
+
                 <div>
                   <h4 class="tr-packages">Installed Packages</h4>
                   <textarea
-                    rows="10"
+                    rows="20"
                     id="asu-packages"
                     autocomplete="off"
                     spellcheck="false"
