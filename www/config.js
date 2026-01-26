@@ -78,7 +78,7 @@ var config = {
 
   // Image download URL (e.g. "https://downloads.openwrt.org")
   image_url: "https://firmware-libremesh.antennine.org",
-  openwrt_image_url: "https://downloads.openwrt.org",
+  openwrt_image_url: "https://mirror-03.infra.openwrt.org",
 
   // Insert snapshot versions (optional)
   //show_snapshots: true,
