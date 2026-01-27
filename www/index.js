@@ -125,8 +125,8 @@ MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEdFJZ2qVti49Ol8LJZYuxgOCLowBS\n\
 
   if (current_openwrt != "SNAPSHOT") {
     openwrt_branch = "openwrt-" + current_openwrt.substring(0, 5);
-    repo_keys = ["RWSnGzyChavSiyQ+vLk3x7F0NqcLa4kKyXCdriThMhO78ldHgxGljM/8"];
     if (current_openwrt.substring(0, 2) < 25) {
+      repo_keys = ["RWSnGzyChavSiyQ+vLk3x7F0NqcLa4kKyXCdriThMhO78ldHgxGljM/8"];
       packages_ref = "";
     }
   }
