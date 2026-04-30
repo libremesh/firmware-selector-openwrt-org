@@ -1,5 +1,6 @@
 import { $, $$, hide, show, split } from "./utils.js";
 import { translate } from "./translation.js";
+import { getFeedBranch } from "./libremesh.js";
 
 export function createAsuRequestBuilder(context) {
   const { config, progress, ofsVersion, getCurrentDevice, updateImages } =
@@ -15,18 +16,33 @@ export function createAsuRequestBuilder(context) {
     currentDevice,
     openwrtVersion
   ) {
-    const repositories = rawRepositories || {};
+    let repositories = rawRepositories || {};
     const [target = "", subtarget = ""] = String(
       currentDevice?.target || ""
     ).split("/");
     const openwrtBranch = getOpenwrtBranch(openwrtVersion);
+    const openwrtArch = currentDevice.arch;
+    const feedBranch = getFeedBranch();
+
+    if (openwrtVersion != "SNAPSHOT") {
+      if (openwrtVersion.substring(0, 2) < 25) {
+        repositories = Object.fromEntries(
+          Object.entries(repositories).map(([name, url]) => [
+            name,
+            String(url).replace("/packages.adb", ""),
+          ])
+        );
+      }
+    }
 
     return Object.fromEntries(
       Object.entries(repositories).map(([name, url]) => [
         name,
         String(url)
+          .replaceAll("{feed_branch}", feedBranch)
           .replaceAll("{openwrt_branch}", openwrtBranch)
           .replaceAll("{openwrt_version}", String(openwrtVersion || ""))
+          .replaceAll("{openwrt_arch}", String(openwrtArch || ""))
           .replaceAll("{target}", target)
           .replaceAll("{subtarget}", subtarget),
       ])
@@ -67,6 +83,12 @@ export function createAsuRequestBuilder(context) {
     $$("#download-table1 *").forEach((e) => e.remove());
     $$("#download-links2 *").forEach((e) => e.remove());
     $$("#download-extras2 *").forEach((e) => e.remove());
+    show("#downloads1");
+    show("#downloads2");
+    show("#download-table1");
+    show("#download-links2");
+    show("#download-extras2");
+    show(".tr-downloads");
     hide("#asu-log");
 
     const currentDevice = getCurrentDevice();
@@ -80,7 +102,9 @@ export function createAsuRequestBuilder(context) {
     const buildBody = {
       profile: currentDevice.id,
       target: currentDevice.target,
-      packages: split($("#asu-packages").value),
+      packages: split($("#asu-packages").value).concat(
+        split($("#lime-packages").value)
+      ),
       defaults: $("#uci-defaults-content").value,
       version_code: $("#image-code").innerText,
       version: selectedVersion,
@@ -98,6 +122,9 @@ export function createAsuRequestBuilder(context) {
     }
     const requestUrl =
       `${config.asu_url}/api/v1/build` + (requestHash ? `/${requestHash}` : "");
+
+    console.log(buildBody);
+    // return
 
     fetch(requestUrl, {
       cache: "no-cache",

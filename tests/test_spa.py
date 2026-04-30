@@ -5,13 +5,13 @@ def test_spa(simplehttpserver):
         browser = p.firefox.launch()
         page = browser.new_page()
         page.goto("http://localhost:8000/www/")
-        assert "OpenWrt Firmware Selector" in page.title()
+        assert "LibreMesh Firmware Selector" in page.title()
 
-        assert page.locator("#versions").select_option("19.07.10")[0] == "19.07.10"
+        assert page.locator("#versions").select_option("SNAPSHOT")[0] == "SNAPSHOT"
 
-        page.fill("#models", "a7 v5")
+        page.fill("#models", "openwrt")
         models = page.inner_text("#models-autocomplete-list")
-        assert "TP-Link Archer A7 v5" in models
+        assert "OpenWrt One" in models
 
         locator = page.locator("xpath=/html/body/div/div/p")
         expect(locator).to_contain_text('Type the name or model of your device')

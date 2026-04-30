@@ -4,18 +4,42 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>OpenWrt Firmware Selector</title>
-    <link rel="icon" href="favicon.ico" />
+    <title>LibreMesh Firmware Selector</title>
+    <link rel="icon" href="libremesh_favicon.ico" />
     <link rel="stylesheet" href="index.css" />
     <script src="config.js"></script>
     <script type="module" src="js/main.js"></script>
+    <style>
+      #libremesh-packages-wrapper * {
+        min-width: 15em;
+      }
+      #libremesh-packages-wrapper > div > div {
+        padding-bottom: 0.5em;
+      }
+      #libremesh-packages-wrapper select {
+        padding: 0.7em;
+      }
+      #libremesh-packages-wrapper select,
+      #libremesh-packages-wrapper textarea {
+        flex-grow: 1;
+      }
+      #libremesh-packages-wrapper span {
+        padding: 0.4em 0;
+      }
+
+      @media (min-resolution: 400dpi), (max-width: 600px), (pointer: coarse) {
+        #libremesh-packages-wrapper > div > div {
+          flex-direction: column;
+        }
+      }
+    </style>
   </head>
   <body>
     <!-- header across the whole page -->
     <header>
       <div>
-        <a href="https://openwrt.org">
-          <img src="logo.svg" width="180" alt="Logo" />
+        <a href="https://libremesh.org">
+          <img src="libremesh_logo.svg" width="180" alt="Logo" />
         </a>
         <div style="flex-grow: 1"></div>
         <div>
@@ -80,10 +104,16 @@
 
     <div class="container">
       <div>
-        <h2 class="tr-load">Download OpenWrt Firmware for your Device</h2>
+        <h2 class="tr-libremesh-load">
+          Build LibreMesh firmware for your Device
+        </h2>
         <p class="tr-message">
           Type the name or model of your device, then select a stable build or
           the nightly "snapshot" build.
+        </p>
+        <p>
+          Download old precompiled versions from
+          <a href="https://firmware-libremesh.antennine.org/releases/">here</a>.
         </p>
 
         <!-- Model name and Build dropdown -->
@@ -159,7 +189,7 @@
                   </div>
                 </div>
                 <div>
-                  <h4 class="tr-packages">Installed Packages</h4>
+                  <h4 class="tr-packages">OpenWrt Packages</h4>
                   <textarea
                     rows="10"
                     id="asu-packages"
@@ -167,6 +197,37 @@
                     spellcheck="false"
                     autocapitalize="off"
                   ></textarea>
+                </div>
+                <div id="libremesh-packages-wrapper">
+                  <h4 class="tr-libremesh-packages">LibreMesh Packages</h4>
+                  <div>
+                    <div style="display: flex">
+                      <span>Flavor:</span>
+                      <select id="flavor-select">
+                        <option value="default">
+                          default (babeld, batman-adv, anygw, lime-app,
+                          shared-state-async)
+                        </option>
+                        <option value="mini">
+                          mini (babeld, batman-adv, anygw, shared-state)
+                        </option>
+                        <option value="babeld-only">babeld-only</option>
+                      </select>
+                    </div>
+                    <div style="display: flex">
+                      <span>Feed Branch:</span>
+                      <select id="ref-select"></select>
+                    </div>
+                  </div>
+                  <div style="display: flex">
+                    <textarea
+                      rows="10"
+                      id="lime-packages"
+                      autocomplete="off"
+                      spellcheck="false"
+                      autocapitalize="off"
+                    ></textarea>
+                  </div>
                 </div>
                 <h4 class="tr-defaults">
                   Script to run on first boot (uci-defaults)

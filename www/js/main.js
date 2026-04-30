@@ -10,6 +10,7 @@ import {
   setupSelectList,
   setupUciDefaults,
 } from "./models.js";
+import { libremeshInitBranches, libremeshInitFlavor } from "./libremesh.js";
 
 let currentDevice = {};
 let urlParams;
@@ -74,10 +75,19 @@ async function init() {
       return { versions_list: [] };
     })
     .then((obj) => {
-      const unsupportedVersionsRe = /^(19\.07\.\d|18\.06\.\d|17\.01\.\d)$/;
-      const versions = obj.versions_list.filter(
+      const unsupportedVersionsRe =
+        /^(22\.03\.\d|21\.02\.\d|19\.07\.\d+|18\.06\.\d|17\.01\.\d|.*-rc.*)$/;
+      let versions = obj.versions_list.filter(
         (version) => !unsupportedVersionsRe.test(version)
       );
+
+      // Show only the latest n versions per each branch
+      const counts = {};
+      versions = versions.filter((v) => {
+        const branch = v.substring(0, 5);
+        counts[branch] = (counts[branch] || 0) + 1;
+        return counts[branch] <= config.branch_versions_count;
+      });
 
       if (config.upcoming_version) {
         versions.push(obj.upcoming_version);
@@ -161,6 +171,9 @@ async function init() {
   setupUciDefaults();
   updateImagesBound();
   initTranslation();
+
+  libremeshInitFlavor();
+  libremeshInitBranches();
 
   const asuButton = $("#asu-request-build");
   if (asuButton) {
