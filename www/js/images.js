@@ -1,5 +1,6 @@
 import { $, $$, append, formatDate, hide, setValue, show } from "./utils.js";
 import { translate } from "./translation.js";
+import { libremeshPackagesChanges } from "./libremesh.js";
 
 export function getModelTitles(titles) {
   return titles.map((e) => {
@@ -261,6 +262,16 @@ export function updateImages(version, mobj, context) {
         config,
         customDevicePackages
       ).join(" ");
+
+      $("#lime-packages").value = config.libremesh.default_packages
+        .concat(config.libremesh.generic_save_space)
+        .concat(
+          libremeshPackagesChanges(
+            mobj.default_packages.concat(mobj.device_packages)
+          )
+        )
+        .concat(config.libremesh.flavors.default)
+        .join(" ");
     }
 
     translate();

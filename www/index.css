@@ -367,7 +367,7 @@ header > div {
 
 /* light mode */
 header {
-  background-color: #00a3e1;
+  background-color: #fff;
 }
 
 body {
@@ -408,7 +408,7 @@ body {
 /* dark mode */
 @media (prefers-color-scheme: dark) {
   header {
-    background-color: #0080b3;
+    background-color: #252528;
   }
 
   body {

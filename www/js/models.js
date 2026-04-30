@@ -1,4 +1,4 @@
-import { $ } from "./utils.js";
+import { $, hide } from "./utils.js";
 import { hideAlert, showAlert } from "./utils.js";
 import { setupAutocompleteList } from "./autocomplete.js";
 import { getModelTitles } from "./images.js";
@@ -51,6 +51,13 @@ export function setModel(overview, target, id) {
 }
 
 export function changeModel(version, overview, title, context) {
+  hide("#downloads1");
+  hide("#downloads2");
+  hide("#download-table1");
+  hide("#download-links2");
+  hide("#download-extras2");
+  hide(".tr-downloads");
+
   const { config, updateImages, setCurrentDevice } = context;
   const entry = overview.profiles[title];
   const baseUrl = config.image_urls[version];
@@ -75,6 +82,7 @@ export function changeModel(version, overview, title, context) {
           version: version,
           id: entry.id,
           target: entry.target,
+          arch: mobj["arch_packages"],
         });
       })
       .catch((err) => showAlert(err.message));
