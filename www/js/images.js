@@ -1,6 +1,6 @@
 import { $, $$, append, formatDate, hide, setValue, show } from "./utils.js";
 import { translate } from "./translation.js";
-import { libremeshPackagesChanges } from "./libremesh.js";
+import { libremeshPackagesChanges } from "./package_changes.js";
 
 export function getModelTitles(titles) {
   return titles.map((e) => {
@@ -267,6 +267,7 @@ export function updateImages(version, mobj, context) {
         .concat(config.libremesh.generic_save_space)
         .concat(
           libremeshPackagesChanges(
+            version,
             mobj.default_packages.concat(mobj.device_packages)
           )
         )

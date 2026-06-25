@@ -3,39 +3,6 @@ import { $, split } from "./utils.js";
 const config = window.config;
 var current_flavor = config.libremesh.flavors.default;
 
-export function libremeshPackagesChanges(packages) {
-  let packages_list = [];
-
-  packages.forEach((pkg) => {
-    config.libremesh.packages_changes_list.forEach((pc) => {
-      if (pc.action == "replace") {
-        if (pkg == pc.source) {
-          pc.packages.forEach((change) => {
-            if (!packages_list.includes(change)) {
-              packages_list.push(change);
-            }
-          });
-        }
-      }
-      if (pc.action == "regexp") {
-        let matches = pkg.match(pc.source);
-        if (matches?.length) {
-          pc.packages.forEach((replacement) => {
-            let change = replacement
-              .replace("REPLACE", matches[1])
-              .replace("KEEP", matches[2]);
-            if (!packages_list.includes(change)) {
-              packages_list.push(change);
-            }
-          });
-        }
-      }
-    });
-  });
-
-  return packages_list;
-}
-
 export function libremeshInitFlavor() {
   let select = $("#flavor-select");
 
