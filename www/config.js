@@ -86,56 +86,7 @@ var config = {
         "lime-proto-babeld",
         "shared-state",
         "shared-state-babeld_hosts",
-      ],
-    },
-    packages_changes_list: [
-      {
-        source: "kmod-ath9k",
-        action: "replace",
-        packages: ["wifi-unstuck-wa"],
-      },
-      {
-        source: "-kmod-ath9k",
-        action: "replace",
-        packages: ["-wifi-unstuck-wa"],
-      },
-      {
-        source: "kmod-ath10k-ct-smallbuffers",
-        action: "replace",
-        packages: [
-          "-kmod-ath10k",
-          "-kmod-ath10k-ct",
-          "-kmod-ath10k-ct-smallbuffers",
-          "kmod-ath10k-smallbuffers",
-        ],
-      },
-      {
-        source: "kmod-ath10k-ct",
-        action: "replace",
-        packages: [
-          "-kmod-ath10k-ct",
-          "-kmod-ath10k-ct-smallbuffers",
-          "kmod-ath10k",
-        ],
-      },
-      {
-        source: "-kmod-ath10k-ct",
-        action: "replace",
-        packages: ["-kmod-ath10k"],
-      },
-      {
-        source: /^ath10k-firmware-qca(.*)-ct(.*)$/,
-        action: "regexp",
-        packages: [
-          "-ath10k-firmware-qcaREPLACE-ctKEEP",
-          "ath10k-firmware-qcaREPLACE",
-        ],
-      },
-      {
-        source: /^-ath10k-firmware-qca(.*)-ct(.*)$/,
-        action: "regexp",
-        packages: ["ath10k-firmware-qcaREPLACE"],
-      },
-    ],
+      ]
+    }
   },
 };
