@@ -24,6 +24,8 @@ export function createAsuRequestBuilder(context) {
     const openwrtArch = currentDevice.arch;
     const feedBranch = getFeedBranch();
 
+    const openwrtBranchLimeFeeds = (openwrtVersion == "SNAPSHOT") && "main" || openwrtBranch
+
     if (openwrtVersion != "SNAPSHOT") {
       if (openwrtVersion.substring(0, 2) < 25) {
         repositories = Object.fromEntries(
@@ -41,6 +43,7 @@ export function createAsuRequestBuilder(context) {
         String(url)
           .replaceAll("{feed_branch}", feedBranch)
           .replaceAll("{openwrt_branch}", openwrtBranch)
+          .replaceAll("{openwrt_branch_lime_feeds}", openwrtBranchLimeFeeds)
           .replaceAll("{openwrt_version}", String(openwrtVersion || ""))
           .replaceAll("{openwrt_arch}", String(openwrtArch || ""))
           .replaceAll("{target}", target)
@@ -135,7 +138,7 @@ export function createAsuRequestBuilder(context) {
     const requestUrl =
       `${config.asu_url}/api/v1/build` + (requestHash ? `/${requestHash}` : "");
 
-    console.log(buildBody);
+    // console.log(buildBody);
     // return
 
     fetch(requestUrl, {

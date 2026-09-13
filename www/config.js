@@ -34,11 +34,11 @@ var config = {
   // Additional repositories for ASU build requests (optional)
   asu_repositories: {
     libremesh:
-      "https://feed.libremesh.org/{feed_branch}/openwrt-{openwrt_branch}/x86_64/packages.adb",
+      "https://feed.libremesh.org/{feed_branch}/openwrt-{openwrt_branch_lime_feeds}/x86_64/packages.adb",
     libremesh_arch_packages:
-      "https://feed.libremesh.org/{feed_branch}/openwrt-{openwrt_branch}/{openwrt_arch}/packages.adb",
+      "https://feed.libremesh.org/{feed_branch}/openwrt-{openwrt_branch_lime_feeds}/{openwrt_arch}/packages.adb",
     profiles:
-      "https://feed.libremesh.org/profiles/openwrt-{openwrt_branch}/x86_64/packages.adb",
+      "https://feed.libremesh.org/profiles/openwrt-{openwrt_branch_lime_feeds}/x86_64/packages.adb",
   },
   asu_repositories_mode: "append", // "append" or "replace"
   asu_repository_keys: [
