@@ -76,6 +76,7 @@ var config = {
         "lime-proto-anygw",
         "lime-proto-babeld",
         "lime-proto-batadv",
+        "lime-report",
         "shared-state",
         "shared-state-babeld_hosts",
       ],
